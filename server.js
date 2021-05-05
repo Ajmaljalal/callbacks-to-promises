@@ -1,34 +1,41 @@
-const http = require('http');
+var http = require("http");
 
-function willItBlend(itBlends, callback) {
-  // should be true for anything divisible by 3 between 0 and 9
-  if (itBlends) {
-    callback(null, 'Good news! It Blends!');
-  } else {
-    callback(new Error('Oh No! It didn\'t Blend!'));
-  }
+function willItBlend(itBlends) {
+  return new Promise((resolve, reject) => {
+    if (itBlends) {
+      resolve("Good news! It Blends!");
+    } else {
+      reject(new Error("Oh No! It didn't Blend!"));
+    }
+  });
 }
 
-function generateProbability(callback) {
+function generateProbability() {
   const itBlends = Math.floor(Math.random() * 10) % 3 === 0;
-  callback(itBlends);
+  return new Promise(resolve => {
+    resolve(itBlends);
+  });
 }
 
 //create a server object:
 http
   .createServer(function(req, res) {
-    generateProbability(itBlends => {
-      willItBlend(itBlends, (err, result) => {
-        if (err) {
-          res.write(err.message);
-        } else {
+    generateProbability()
+      .then(itBlends => willItBlend(itBlends))
+      .then(
+        result => {
           res.write(result);
+          res.end();
+        },
+        err => {
+          res.write(err.message);
+          res.end();
         }
-        res.end();
-      });
-    });
+      );
   })
   .listen(8080); //the server object listens on port 8080
+
+
 
 
 //forked from https://codesandbox.io/s/r0q23jq9vp
